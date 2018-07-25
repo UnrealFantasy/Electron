@@ -2,10 +2,39 @@
 
 in vec2 fragment_texture;
 
+flat in vec3 processed_normal;
+
+in vec3 light_source;
+in vec3 camera_source;
+
 out vec4 pixel;
 
 uniform sampler2D sampler;
 
+uniform vec3 light_color;
+
+uniform float specular_dampener, specular_reflectivity;
+
 void main() {
+    vec3 unit_processed_normal = normalize(processed_normal);
+    vec3 unit_light_source = normalize(light_source);
+
+    float diffuse = dot(unit_processed_normal, unit_light_source);
+
+    vec3 unit_camera_source = normalize(camera_source);
+    vec3 light_direction = -light_source;
+
+    vec3 reflected_source = reflect(light_direction, processed_normal);
+
+    float specular = dot(reflected_source, unit_camera_source);
+
+    specular = max(specular, 0);
+
+    float dampened = pow(specular, specular_dampener);
+
+    vec3 specular_color = specular * specular_reflectivity * vec3(1, 1, 1);
+
+    pixel = vec4(specular_color, 1) + (vec4((max(diffuse, 0) * light_color), 0) * vec4(1, 1, 1, 1));
+
     pixel = texture(sampler, fragment_texture);
 }

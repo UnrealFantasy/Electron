@@ -2,13 +2,26 @@
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 vertex_texture;
+layout (location = 2) in vec3 normal;
 
 out vec2 fragment_texture;
 
+flat out vec3 processed_normal;
+
+out vec3 light_source;
+out vec3 camera_source;
+
 uniform mat4 projection_matrix, view_matrix, transformation_matrix;
+
+uniform vec3 light_position;
 
 void main() {
     gl_Position = projection_matrix * view_matrix * transformation_matrix * vec4(position, 1);
 
-    fragment_texture = vertex_texture;
+    fragment_texture = vertex_texture * 512;
+
+    processed_normal = (transformation_matrix * vec4(normal, 0)).xyz;
+
+    light_source = light_position - (transformation_matrix * vec4(position, 1)).xyz;
+    camera_source = (inverse(view_matrix) * vec4(0, 0, 0, 1)).xyz - (transformation_matrix * vec4(position, 1)).xyz;
 }
